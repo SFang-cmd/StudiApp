@@ -39,3 +39,9 @@
 # typescript
 /frontend/*.tsbuildinfo
 /frontend/next-env.d.ts
+
+# conda environment
+/env
+
+# package cache
+/backend/*/__pycache__
