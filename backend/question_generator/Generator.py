@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import os
 from supabase import create_client, Client
-from bs4 import BeautifulSoup
 import ast
 
 # Creates a client to interact with the Supabase database
@@ -35,48 +34,45 @@ class Generator:
                         "skill_cd" : overview["skill_cd"],
                         "difficulty" : 1 if overview["difficulty"] == "E" else 2 if overview["difficulty"] == "M" else 3,
                         "score_difficulty" : overview["score_band_range_cd"],
-                        "stem" : (BeautifulSoup(question["stem"], "html.parser").p.get_text()),
-                        "stimulus" : (BeautifulSoup(question["stimulus"], "html.parser").p.get_text()),
+                        "stem" : question["stem"] if "stem" in question else None,
+                        "stimulus" : question["stimulus"] if "stimulus" in question else None,
                         "type" : question["type"],
-                        "ans_a" : (BeautifulSoup(question["answerOptions"][0]["content"], "html.parser").p.get_text()),
-                        "ans_b" : (BeautifulSoup(question["answerOptions"][1]["content"], "html.parser").p.get_text()),
-                        "ans_c" : (BeautifulSoup(question["answerOptions"][2]["content"], "html.parser").p.get_text()),
-                        "ans_d" : (BeautifulSoup(question["answerOptions"][3]["content"], "html.parser").p.get_text()),
-                        "correct_ans" : question["correct_answer"][0],
-                        "explanation" : (BeautifulSoup(question["rationale"], "html.parser").p.get_text()),
+                        "ans_a" : question["answerOptions"][0]["content"],
+                        "ans_b" : question["answerOptions"][1]["content"],
+                        "ans_c" : question["answerOptions"][2]["content"],
+                        "ans_d" : question["answerOptions"][3]["content"],
+                        "correct_ans" : question["correct_answer"],
+                        "explanation" : question["rationale"],
                         "test" : overview["program"],
                         "subject" : "English" if overview["primary_class_cd"] in ["INI", "CAS", "EOI", "SEC"] else "Math"
-                        })
-                .on_conflict("external_id")
-                .do_nothing()
+                        }, on_conflict="external_id", ignore_duplicates=True)
                 .execute()
             )
         elif (question["type"] == "spr"):
-            # response = (
-            #     self.supabase.table("QuestionBank")
-            #     .insert({"question_id" : overview["questionId"], 
-            #             "u_id" : overview["uId"], 
-            #             "external_id" : overview["external_id"],
-            #             "source" : source,
-            #             "primary_cat_cd" : overview["primary_class_cd"],
-            #             "skill_cd" : overview["skill_cd"],
-            #             "difficulty" : 1 if overview["difficulty"] == "E" else 2 if overview["difficulty"] == "M" else 3,
-            #             "score_difficulty" : overview["score_band_range_cd"],
-            #             "stem" : (BeautifulSoup(question["stem"], "html.parser").p.get_text()),
-            #             "stimulus" : (BeautifulSoup(question["stimulus"], "html.parser").p.get_text()),
-            #             "type" : question["type"],
-            #             "ans_a" : (BeautifulSoup(question["answerOptions"][0]["content"], "html.parser").p.get_text()),
-            #             "ans_b" : (BeautifulSoup(question["answerOptions"][1]["content"], "html.parser").p.get_text()),
-            #             "ans_c" : (BeautifulSoup(question["answerOptions"][2]["content"], "html.parser").p.get_text()),
-            #             "ans_d" : (BeautifulSoup(question["answerOptions"][3]["content"], "html.parser").p.get_text()),
-            #             "correct_ans" : question["correct_answer"][0],
-            #             "explanation" : (BeautifulSoup(question["rationale"], "html.parser").p.get_text()),
-            #             "test" : overview["program"],
-            #             "subject" : "English" if overview["primary_class_cd"] in ["INI", "CAS", "EOI", "SEC"] else "Math"
-            #             })
-            #     .execute()
-            # )
-            raise ValueError("Not implemented")
+            response = (
+                self.supabase.table("QuestionBank")
+                .upsert({"question_id" : overview["questionId"], 
+                        "u_id" : overview["uId"], 
+                        "external_id" : overview["external_id"],
+                        "source" : source,
+                        "primary_cat_cd" : overview["primary_class_cd"],
+                        "skill_cd" : overview["skill_cd"],
+                        "difficulty" : 1 if overview["difficulty"] == "E" else 2 if overview["difficulty"] == "M" else 3,
+                        "score_difficulty" : overview["score_band_range_cd"],
+                        "stem" : question["stem"] if "stem" in question else None,
+                        "stimulus" : question["stimulus"] if "stimulus" in question else None,
+                        "type" : question["type"],
+                        "ans_a" : None,
+                        "ans_b" : None,
+                        "ans_c" : None,
+                        "ans_d" : None,
+                        "correct_ans" : question["correct_answer"],
+                        "explanation" : question["rationale"],
+                        "test" : overview["program"],
+                        "subject" : "English" if overview["primary_class_cd"] in ["INI", "CAS", "EOI", "SEC"] else "Math"
+                        }, on_conflict="external_id", ignore_duplicates=True)
+                .execute()
+            )
         else:
             raise ValueError("Invalid question type")
 

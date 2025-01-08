@@ -11,8 +11,7 @@ generator = Generator("college_board")
 asmtEventId = [99, 100, 102]
 
 # Math test is not yet implemented
-# tests = [1, 2]
-tests = [1]
+tests = [1, 2]
 reading_domains = ["INI", "CAS", "EOI", "SEC"]
 math_domains = ["H", "P", "Q", "S"]
 
@@ -26,22 +25,20 @@ for test in tests:
     print(f"Currently Populating Subject: {"Reading" if test == 1 else "Math"}")
 
     for domain in domains:
-        print(f"\tCurrently Populating domain: {domain}")
+        print(f"->Currently Populating domain: {domain}")
 
         for eventId in asmtEventId:
             content = {"asmtEventId": eventId, "test": test, "domain": domain}
             overview_list = requests.post(overview_bank, json=content)
-            print(f"\tCurrently Populating test: {eventId}")
-            count = 0
-            length = len(json.loads(overview_list.text))
+            print(f"->->Currently Populating test: {eventId}")
 
             for overview in tqdm(json.loads(overview_list.text)):
+                if (overview["external_id"] == None):
+                    continue
+
+                # Get the question from the College Board API
                 problem = {"external_id": overview["external_id"]}
                 question_raw = requests.post(question_bank, json=problem)
                 question = json.loads(question_raw.text)
                 # Add the question to the database
                 generator.add_question("college_board", overview, question)
-
-                # Tracking progress
-                print(f"{count * 100 // length}%: {count} out of {length}")
-                count += 1
